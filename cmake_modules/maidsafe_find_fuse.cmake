@@ -2,24 +2,27 @@
 #                                                                                                  #
 #  Copyright 2012 MaidSafe.net limited                                                             #
 #                                                                                                  #
-#  This MaidSafe Software is licensed under the MaidSafe.net Commercial License, version 1.0 or    #
-#  later, and The General Public License (GPL), version 3. By contributing code to this project    #
-#  You agree to the terms laid out in the MaidSafe Contributor Agreement, version 1.0, found in    #
-#  the root directory of this project at LICENSE, COPYING and CONTRIBUTOR respectively and also    #
-#  available at:                                                                                   #
+#  This MaidSafe Software is licensed to you under (1) the MaidSafe.net Commercial License,        #
+#  version 1.0 or later, or (2) The General Public License (GPL), version 3, depending on which    #
+#  licence you accepted on initial access to the Software (the "Licences").                        #
 #                                                                                                  #
-#    http://www.novinet.com/license                                                                #
+#  By contributing code to the MaidSafe Software, or to this project generally, you agree to be    #
+#  bound by the terms of the MaidSafe Contributor Agreement, version 1.0, found in the root        #
+#  directory of this project at LICENSE, COPYING and CONTRIBUTOR respectively and also available   #
+#  at: http://www.maidsafe.net/licenses                                                            #
 #                                                                                                  #
-#  Unless required by applicable law or agreed to in writing, software distributed under the       #
-#  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,       #
-#  either express or implied. See the License for the specific language governing permissions      #
-#  and limitations under the License.                                                              #
+#  Unless required by applicable law or agreed to in writing, the MaidSafe Software distributed    #
+#  under the GPL Licence is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF   #
+#  ANY KIND, either express or implied.                                                            #
+#                                                                                                  #
+#  See the Licences for the specific language governing permissions and limitations relating to    #
+#  use of the MaidSafe Software.                                                                   #
 #                                                                                                  #
 #==================================================================================================#
 #                                                                                                  #
 #  Module used to locate Filesystem in Userspace (FUSE) lib and header.                            #
 #                                                                                                  #
-#  Settable variables to aid with finding CBFS are:                                                #
+#  Settable variables to aid with finding FUSE are:                                                #
 #    ADD_FUSE_INCLUDE_DIR                                                                          #
 #                                                                                                  #
 #  Variables set and cached by this module are:                                                    #
@@ -39,10 +42,18 @@ endif()
 if(APPLE)
   find_library(Fuse_LIBRARY libosxfuse_i64.dylib)
   find_path(Fuse_INCLUDE_DIR fuse.h PATHS "/usr/local/include/osxfuse" ${ADD_FUSE_INCLUDE_DIR} NO_DEFAULT_PATH)
-  get_filename_component(Fuse_INCLUDE_DIR ${Fuse_INCLUDE_DIR} PATH)
   if(NOT Fuse_INCLUDE_DIR)
     set(ERROR_MESSAGE "\nCould not find include directory for OSXFUSE.")
     set(ERROR_MESSAGE "${ERROR_MESSAGE}  Run\ncmake . -DADD_FUSE_INCLUDE_DIR=<Path to osxfuse include directory>")
+    message(FATAL_ERROR ${ERROR_MESSAGE})
+  endif()
+elseif(BSD)
+  # FreeBSD 10 and later has fuse built in as standard, but headers may not be installed
+  find_library(Fuse_LIBRARY libfuse.so)
+  find_path(Fuse_INCLUDE_DIR fuse/fuse.h PATHS "/usr/local/include" ${ADD_FUSE_INCLUDE_DIR} NO_DEFAULT_PATH)
+  if(NOT Fuse_INCLUDE_DIR)
+    set(ERROR_MESSAGE "\nCould not find include directory for FUSE.")
+    set(ERROR_MESSAGE "${ERROR_MESSAGE}  Try 'pkg install fusefs-libs'")
     message(FATAL_ERROR ${ERROR_MESSAGE})
   endif()
 else()
@@ -60,14 +71,5 @@ else()
     set(ERROR_MESSAGE "\nCould not find library libfuse.so.")
     set(ERROR_MESSAGE "${ERROR_MESSAGE}  Run\ncmake . -DADD_LIBRARY_DIR=<Path to libfuse directory>")
   endif()
-  message(FATAL_ERROR {ERROR_MESSAGE})
-endif()
-
-if(APPLE)
-  include_directories(SYSTEM ${Fuse_INCLUDE_DIR})
-  if(CMAKE_INCLUDE_DIRECTORIES_BEFORE)
-    set(INCLUDE_DIRS ${Fuse_INCLUDE_DIR} ${INCLUDE_DIRS})
-  else()
-    set(INCLUDE_DIRS ${INCLUDE_DIRS} ${Fuse_INCLUDE_DIR})
-  endif()
+  message(FATAL_ERROR ${ERROR_MESSAGE})
 endif()

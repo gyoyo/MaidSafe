@@ -1,44 +1,44 @@
 <Project name="MaidSafe">
-  <SubProject name="Common">
+  <SubProject name="ThirdParty">
   </SubProject>
-  <SubProject name="Private">
-    <Dependency name="Common"/>
-    <Dependency name="Passport"/>
+  <SubProject name="Common">
+    <Dependency name="ThirdParty"/>
   </SubProject>
   <SubProject name="Passport">
     <Dependency name="Common"/>
-    <Dependency name="Private"/>
+  </SubProject>
+  <SubProject name="CRUX">
+    <Dependency name="Common"/>
   </SubProject>
   <SubProject name="Rudp">
     <Dependency name="Common"/>
-    <Dependency name="Private"/>
     <Dependency name="Passport"/>
   </SubProject>
   <SubProject name="Routing">
     <Dependency name="Common"/>
-    <Dependency name="Private"/>
     <Dependency name="Passport"/>
+    <Dependency name="CRUX"/>
     <Dependency name="Rudp"/>
   </SubProject>
   <SubProject name="Nfs">
     <Dependency name="Common"/>
-    <Dependency name="Private"/>
     <Dependency name="Passport"/>
+    <Dependency name="CRUX"/>
     <Dependency name="Rudp"/>
     <Dependency name="Routing"/>
   </SubProject>
   <SubProject name="Encrypt">
     <Dependency name="Common"/>
-    <Dependency name="Private"/>
     <Dependency name="Passport"/>
+    <Dependency name="CRUX"/>
     <Dependency name="Rudp"/>
     <Dependency name="Routing"/>
     <Dependency name="Nfs"/>
   </SubProject>
   <SubProject name="Drive">
     <Dependency name="Common"/>
-    <Dependency name="Private"/>
     <Dependency name="Passport"/>
+    <Dependency name="CRUX"/>
     <Dependency name="Rudp"/>
     <Dependency name="Routing"/>
     <Dependency name="Nfs"/>
@@ -46,31 +46,39 @@
   </SubProject>
   <SubProject name="Vault">
     <Dependency name="Common"/>
-    <Dependency name="Private"/>
     <Dependency name="Passport"/>
+    <Dependency name="CRUX"/>
     <Dependency name="Rudp"/>
     <Dependency name="Routing"/>
     <Dependency name="Nfs"/>
   </SubProject>
-  <SubProject name="Lifestuff">
+  <SubProject name="VaultManager">
     <Dependency name="Common"/>
-    <Dependency name="Private"/>
     <Dependency name="Passport"/>
+    <Dependency name="CRUX"/>
+    <Dependency name="Rudp"/>
+    <Dependency name="Routing"/>
+    <Dependency name="Nfs"/>
+    <Dependency name="Vault"/>
+  </SubProject>
+  <SubProject name="API">
+    <Dependency name="Common"/>
+    <Dependency name="Passport"/>
+    <Dependency name="CRUX"/>
     <Dependency name="Rudp"/>
     <Dependency name="Routing"/>
     <Dependency name="Nfs"/>
     <Dependency name="Encrypt"/>
     <Dependency name="Drive"/>
   </SubProject>
-  <SubProject name="LifestuffUiQt">
+  <SubProject name="Launcher">
     <Dependency name="Common"/>
-    <Dependency name="Private"/>
     <Dependency name="Passport"/>
+    <Dependency name="CRUX"/>
     <Dependency name="Rudp"/>
     <Dependency name="Routing"/>
     <Dependency name="Nfs"/>
     <Dependency name="Encrypt"/>
     <Dependency name="Drive"/>
-    <Dependency name="Lifestuff"/>
   </SubProject>
 </Project>

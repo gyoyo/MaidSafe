@@ -2,18 +2,21 @@
 #                                                                                                  #
 #  Copyright 2012 MaidSafe.net limited                                                             #
 #                                                                                                  #
-#  This MaidSafe Software is licensed under the MaidSafe.net Commercial License, version 1.0 or    #
-#  later, and The General Public License (GPL), version 3. By contributing code to this project    #
-#  You agree to the terms laid out in the MaidSafe Contributor Agreement, version 1.0, found in    #
-#  the root directory of this project at LICENSE, COPYING and CONTRIBUTOR respectively and also    #
-#  available at:                                                                                   #
+#  This MaidSafe Software is licensed to you under (1) the MaidSafe.net Commercial License,        #
+#  version 1.0 or later, or (2) The General Public License (GPL), version 3, depending on which    #
+#  licence you accepted on initial access to the Software (the "Licences").                        #
 #                                                                                                  #
-#    http://www.novinet.com/license                                                                #
+#  By contributing code to the MaidSafe Software, or to this project generally, you agree to be    #
+#  bound by the terms of the MaidSafe Contributor Agreement, version 1.0, found in the root        #
+#  directory of this project at LICENSE, COPYING and CONTRIBUTOR respectively and also available   #
+#  at: http://www.maidsafe.net/licenses                                                            #
 #                                                                                                  #
-#  Unless required by applicable law or agreed to in writing, software distributed under the       #
-#  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,       #
-#  either express or implied. See the License for the specific language governing permissions      #
-#  and limitations under the License.                                                              #
+#  Unless required by applicable law or agreed to in writing, the MaidSafe Software distributed    #
+#  under the GPL Licence is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF   #
+#  ANY KIND, either express or implied.                                                            #
+#                                                                                                  #
+#  See the Licences for the specific language governing permissions and limitations relating to    #
+#  use of the MaidSafe Software.                                                                   #
 #                                                                                                  #
 #==================================================================================================#
 #                                                                                                  #
@@ -36,9 +39,9 @@ unset(JustThread_LIBRARY_DEBUG CACHE)
 unset(JustThread_LIBRARIES CACHE)
 unset(JustThread_FOUND CACHE)
 
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
   set(USE_JUST_THREADS FALSE)
-elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.7")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.7")
   set(USE_JUST_THREADS FALSE)
 endif()
 
@@ -49,7 +52,9 @@ endif()
 message("${HR}")
 
 if(JUST_THREAD_ROOT_DIR)
-  set(JUST_THREAD_ROOT_DIR ${JUST_THREAD_ROOT_DIR} CACHE PATH "Path to just::thread root directory" FORCE)
+  # Leave the helpstring as the default to allow the 'ms_get_command_line_args' function in utils.cmake
+  # to identify this as a command line arg.
+  set(JUST_THREAD_ROOT_DIR ${JUST_THREAD_ROOT_DIR} CACHE PATH "No help, variable specified on the command line." FORCE)
 else()
   set(JUST_THREAD_ROOT_DIR
         "C:/Program Files/JustSoftwareSolutions/JustThread"
@@ -116,15 +121,8 @@ endif()
 
 set(JustThread_FOUND 1 CACHE INTERNAL "" FORCE)
 
-get_filename_component(JUST_THREAD_ROOT_DIR ${JustThread_LIBRARY} PATH)
-set(JustThread_LIBRARY_DIR ${JUST_THREAD_ROOT_DIR} CACHE PATH "Path to just::thread library directory" FORCE)
-
-include_directories(SYSTEM ${JustThread_INCLUDE_DIR})
-if(CMAKE_INCLUDE_DIRECTORIES_BEFORE)
-  set(INCLUDE_DIRS ${JustThread_INCLUDE_DIR} ${INCLUDE_DIRS})
-else()
-  set(INCLUDE_DIRS ${INCLUDE_DIRS} ${JustThread_INCLUDE_DIR})
-endif()
+get_filename_component(JustThread_LIBRARY_DIR ${JustThread_LIBRARY} PATH)
+set(JustThread_LIBRARY_DIR ${JustThread_LIBRARY_DIR} CACHE PATH "Path to just::thread library directory" FORCE)
 
 set(JustThread_LIBRARIES optimized ${JustThread_LIBRARY} debug ${JustThread_LIBRARY_DEBUG})
 if(UNIX AND NOT APPLE)

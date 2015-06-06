@@ -1,5 +1,5 @@
-For full details, see https://github.com/maidsafe/MaidSafe/wiki
+For full details about the MaidSafe platform, see the [wiki] (https://github.com/maidsafe/MaidSafe/wiki).
 
-[trends](https://d2weczhvl823v0.cloudfront.net/maidsafe/MaidSafe/trend.png)
+To get started quickly, jump straight to the [build instructions] (https://github.com/maidsafe/MaidSafe/wiki/Build-Instructions).
 
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/853c95dcae6de8eb08494135737ed84e "githalytics.com")](http://githalytics.com/maidsafe/MaidSafe)
+Or to discuss any aspect of any MaidSafe library, use the [developers mailing list] (https://groups.google.com/forum/#!forum/maidsafe-development).

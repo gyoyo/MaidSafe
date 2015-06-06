@@ -34,9 +34,7 @@ import subprocess
 import multiprocessing
 
 # MaidSafe imports
-import lifestuff_killer
-import routing
-import vault
+import vault_killer
 
 
 all = { 'Common' : 'common', 'Rudp' : 'rudp', 'Routing' : 'routing',
@@ -44,8 +42,47 @@ all = { 'Common' : 'common', 'Rudp' : 'rudp', 'Routing' : 'routing',
         'Drive' : 'drive', 'Lifestuff' : 'lifestuff' }
 
 
+def TimeOut(func, args=(), kwargs={}, timeout_duration=10, default=None):
+  """This function will spawn a thread and run the given function
+  using the args, kwargs and return the given default value if the
+  timeout_duration is exceeded.
+  """ 
+  import threading
+  class InterruptableThread(threading.Thread):
+    def __init__(self):
+      threading.Thread.__init__(self)
+      self.result = default
+    def run(self):
+      self.result = func(*args, **kwargs)
+  it = InterruptableThread()
+  it.start()
+  it.join(timeout_duration)
+  return it.result
+#  if it.isAlive():
+#    try:
+#      it._Thread__stop()
+#    except:
+#      print(str(it.getName()) + " could not be terminated")
+#  return result
+
+def LookingFor(proc, keyword, line_limit, required_repeated_time):
+  i = 0
+  repeated_time = 0
+  while i < (line_limit * required_repeated_time):
+    line = str(proc.stdout.readline())
+    print(line.strip("\r\n"))
+    if line.find(keyword) != -1:
+      repeated_time = repeated_time + 1
+      if repeated_time == required_repeated_time:
+        return True
+    i = i + 1
+  return False
+
 def ClearScreen():
   os.system( [ 'clear', 'cls' ][ platform.system() == 'Windows' ] )
+
+def ResetScreen():
+  os.system( [ 'reset', 'cls' ][ platform.system() == 'Windows' ] )
 
 
 def CppLint():
@@ -57,8 +94,11 @@ def CppLint():
 def CountProcs(name):
   num = 0
   for proc in psutil.process_iter():
-    if proc.name.find(name) >= 0:
-       num = num + 1
+    try:
+      if proc.name.find(name) >= 0:
+         num = num + 1
+    except:
+      pass
   return num
 
 
@@ -102,9 +142,9 @@ def GetProg(prog):
 def CheckCurDirIsBuildDir():
   if FindFile('lifestuff_python_api', os.path.join(os.curdir), ('.so','.pyd')) != None:
     return True
-  print 'The current working directory does not contain lifestuff_python_api'
+  print("The current working directory does not contain lifestuff_python_api")
   if not YesNo('Do you want to build lifestuff_python_api in this directory?'):
-    print "You need to run this script from a build directory."
+    print("You need to run this script from a build directory.")
     return False
 
   build_type = ''
@@ -140,11 +180,11 @@ def BuildType():
 def GetLib():
   option = ''
   while option.lower() not in all.values() and option != 'q':
-    print ('Libraries available')
-    print ('-------------------')
+    print("Libraries available")
+    print("-------------------")
     for key, value in all.iteritems():
-      print (key)
-    print ('-------------------')
+      print(key)
+    print("-------------------")
     option = raw_input('please type library name (q to exit): ')
   return option
 
@@ -198,7 +238,7 @@ def work(cmd):
 
 def RunNetwork(number_of_vaults):
   pool = multiprocessing.Pool(processes=number_of_vaults)
-  pool.map(work, [FindFile('TESTcommon', os.curdir)] * number_of_vaults)
+  pool.map(work, [FindFile('test_common', os.curdir)] * number_of_vaults)
 
 
 def main():

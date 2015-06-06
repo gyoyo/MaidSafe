@@ -2,18 +2,21 @@
 #                                                                                                  #
 #  Copyright 2012 MaidSafe.net limited                                                             #
 #                                                                                                  #
-#  This MaidSafe Software is licensed under the MaidSafe.net Commercial License, version 1.0 or    #
-#  later, and The General Public License (GPL), version 3. By contributing code to this project    #
-#  You agree to the terms laid out in the MaidSafe Contributor Agreement, version 1.0, found in    #
-#  the root directory of this project at LICENSE, COPYING and CONTRIBUTOR respectively and also    #
-#  available at:                                                                                   #
+#  This MaidSafe Software is licensed to you under (1) the MaidSafe.net Commercial License,        #
+#  version 1.0 or later, or (2) The General Public License (GPL), version 3, depending on which    #
+#  licence you accepted on initial access to the Software (the "Licences").                        #
 #                                                                                                  #
-#    http://www.novinet.com/license                                                                #
+#  By contributing code to the MaidSafe Software, or to this project generally, you agree to be    #
+#  bound by the terms of the MaidSafe Contributor Agreement, version 1.0, found in the root        #
+#  directory of this project at LICENSE, COPYING and CONTRIBUTOR respectively and also available   #
+#  at: http://www.maidsafe.net/licenses                                                            #
 #                                                                                                  #
-#  Unless required by applicable law or agreed to in writing, software distributed under the       #
-#  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,       #
-#  either express or implied. See the License for the specific language governing permissions      #
-#  and limitations under the License.                                                              #
+#  Unless required by applicable law or agreed to in writing, the MaidSafe Software distributed    #
+#  under the GPL Licence is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF   #
+#  ANY KIND, either express or implied.                                                            #
+#                                                                                                  #
+#  See the Licences for the specific language governing permissions and limitations relating to    #
+#  use of the MaidSafe Software.                                                                   #
 #                                                                                                  #
 #==================================================================================================#
 #                                                                                                  #
@@ -21,38 +24,41 @@
 #                                                                                                  #
 #==================================================================================================#
 
-check_compiler()
-underscores_to_camel_case(${PROJECT_NAME} CamelCaseProjectName)
 
-string(REGEX REPLACE . "-" UNDERSCORE ${PROJECT_NAME})
-if(NOT PROJECT_NAME STREQUAL Cryptopp AND NOT PROJECT_NAME STREQUAL leveldb)
-  message("${HR}\nConfiguring MaidSafe ${CamelCaseProjectName} project\n--------------------${UNDERSCORE}---------")
+ms_check_compiler()
+ms_underscores_to_camel_case(${PROJECT_NAME} CamelCaseProjectName)
+
+if(NOT PROJECT_NAME STREQUAL "Cryptopp" AND
+   NOT PROJECT_NAME STREQUAL "sqlite" AND
+   NOT PROJECT_NAME STREQUAL "network_viewer" AND
+   NOT PROJECT_NAME STREQUAL "launcher_ui")
+  ms_get_branch_and_commit(Branch Commit)
+  set(Msg "Configuring MaidSafe ${CamelCaseProjectName} project on ${Branch} at commit ${Commit}")
+  string(REGEX REPLACE . "-" Underscore ${Msg})
+  message("${HR}\n${Msg}\n${Underscore}")
 endif()
 
 set(CMAKE_MODULE_PATH ${maidsafe_SOURCE_DIR}/cmake_modules)
 
 
-set(MAIDSAFE_TEST_TYPE_MESSAGE "Tests included: All")
-if(NOT MAIDSAFE_TEST_TYPE)
-  set(MAIDSAFE_TEST_TYPE "ALL" CACHE string "Choose the type of TEST, options are: ALL, BEH, FUNC" FORCE)
-else()
-  if(${MAIDSAFE_TEST_TYPE} MATCHES BEH)
-    set(MAIDSAFE_TEST_TYPE_MESSAGE "Tests included: Behavioural")
-  elseif(${MAIDSAFE_TEST_TYPE} MATCHES FUNC)
-    set(MAIDSAFE_TEST_TYPE_MESSAGE "Tests included: Functional")
+if(INCLUDE_TESTS)
+  set(MAIDSAFE_TEST_TYPE_MESSAGE "GTests included: All.  ")
+  if(NOT MAIDSAFE_TEST_TYPE)
+    set(MAIDSAFE_TEST_TYPE "ALL" CACHE string "Choose the type of TEST, options are: ALL, BEH, FUNC" FORCE)
   else()
-    set(MAIDSAFE_TEST_TYPE "ALL" CACHE string "Choose the type of TEST, options are: ALL BEH FUNC" FORCE)
+    if(MAIDSAFE_TEST_TYPE MATCHES "BEH")
+      set(MAIDSAFE_TEST_TYPE_MESSAGE "GTests included: Behavioural.  ")
+    elseif(MAIDSAFE_TEST_TYPE MATCHES "FUNC")
+      set(MAIDSAFE_TEST_TYPE_MESSAGE "GTests included: Functional.  ")
+    else()
+      set(MAIDSAFE_TEST_TYPE "ALL" CACHE string "Choose the type of TEST, options are: ALL BEH FUNC" FORCE)
+    endif()
   endif()
+  enable_testing()
 endif()
 
-
-enable_testing()
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-
-set(CMAKE_DEBUG_POSTFIX -d)
-set(CMAKE_RELWITHDEBINFO_POSTFIX -rwdi)
-set(CMAKE_MINSIZEREL_POSTFIX -msr)
 
 if(UNIX)
   set(CMAKE_INCLUDE_SYSTEM_FLAG_C "-isystem ")
@@ -61,27 +67,12 @@ endif()
 
 
 set(CMAKE_INCLUDE_DIRECTORIES_PROJECT_BEFORE ON)
-include_directories("${PROJECT_SOURCE_DIR}/include")
-include_directories("${PROJECT_SOURCE_DIR}/src")
-include_directories(SYSTEM "${maidsafe_SOURCE_DIR}/src/third_party_libs")  # for cryptopp
-include_directories(SYSTEM "${BoostSourceDir}")
-include_directories(SYSTEM "${maidsafe_SOURCE_DIR}/src/third_party_libs/protobuf/src")
-include_directories(SYSTEM "${maidsafe_SOURCE_DIR}/src/third_party_libs/googlemock/gtest/include")
-include_directories(SYSTEM "${maidsafe_SOURCE_DIR}/src/third_party_libs/googlemock/include")
-include_directories(SYSTEM "${maidsafe_SOURCE_DIR}/src/third_party_libs/leveldb/include")
 
+
+include(check_licenses)
 include(utils)
-
-
-# Create CTestCustom.cmake to avoid inclusion of coverage results from test files, protocol buffer files and main.cc files
-file(WRITE ${PROJECT_BINARY_DIR}/CTestCustom.cmake "\n")
-add_coverage_exclude(\\\\.pb\\\\.)
-add_coverage_exclude(tests/)
-add_coverage_exclude(main\\\\.cc)
-
-
-# Avoid running MemCheck on Style Check tests
-add_memcheck_ignore(${CamelCaseProjectName}StyleCheck)
+ms_check_licenses()
+ms_set_postfixes()
 
 
 # All other libraries search
@@ -90,31 +81,43 @@ if(UNIX)
   set(CMAKE_THREAD_PREFER_PTHREAD true)
   find_package(Threads REQUIRED)
   if(NOT APPLE)
-    set(SYS_LIB ${CMAKE_THREAD_LIBS_INIT} rt)
+    if(NOT ANDROID_BUILD)
+      set(RtLibrary rt)
+    endif()
+    set(SYS_LIB ${CMAKE_THREAD_LIBS_INIT} ${RtLibrary})
   endif()
 endif()
 
 
-set(CTEST_CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE 50000)
-set(CTEST_CUSTOM_MAXIMUM_FAILED_TEST_OUTPUT_SIZE 50000)
-set(CTEST_CONTINUOUS_DURATION 600)
-set(CTEST_CONTINUOUS_MINIMUM_INTERVAL 10)
-set(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY true)
+if(INCLUDE_TESTS)
+  # Avoid running MemCheck on Style Check tests
+  ms_add_memcheck_ignore(${CamelCaseProjectName}StyleCheck)
 
-if(NOT DEFINED MEMORY_CHECK)
-  if($ENV{MEMORY_CHECK})
-    set(MEMORY_CHECK ON)
+  set(CTEST_CUSTOM_MAXIMUM_PASSED_TEST_OUTPUT_SIZE 50000)
+  set(CTEST_CUSTOM_MAXIMUM_FAILED_TEST_OUTPUT_SIZE 50000)
+  set(CTEST_CONTINUOUS_DURATION 600)
+  set(CTEST_CONTINUOUS_MINIMUM_INTERVAL 10)
+  set(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY true)
+
+  if(NOT DEFINED MEMORY_CHECK)
+    if($ENV{MEMORY_CHECK})
+      set(MEMORY_CHECK ON)
+    endif()
   endif()
+  if(MEMORY_CHECK)
+    ms_set_global_test_timeout_factor(20)
+  endif()
+
+  if(UNIX)
+    unset(MEMORYCHECK_SUPPRESSIONS_FILE CACHE)
+    find_file(MEMORYCHECK_SUPPRESSIONS_FILE NAMES MemCheck.supp PATHS ${PROJECT_SOURCE_DIR} DOC "File that contains suppressions for the memory checker")
+    set(MEMORYCHECK_COMMAND_OPTIONS "--tool=memcheck --quiet --verbose --trace-children=yes --demangle=yes --num-callers=50 --show-below-main=yes --leak-check=full --show-reachable=yes --track-origins=yes --gen-suppressions=all")
+  endif()
+
+  unset(MAKECOMMAND CACHE)
+  include(CTest)
+  include(add_gtests)
 endif()
 
-if(UNIX)
-  unset(MEMORYCHECK_SUPPRESSIONS_FILE CACHE)
-  find_file(MEMORYCHECK_SUPPRESSIONS_FILE NAMES MemCheck.supp PATHS ${PROJECT_SOURCE_DIR} DOC "File that contains suppressions for the memory checker")
-  set(MEMORYCHECK_COMMAND_OPTIONS "--tool=memcheck --quiet --verbose --trace-children=yes --demangle=yes --num-callers=50 --show-below-main=yes --leak-check=full --show-reachable=yes --track-origins=yes --gen-suppressions=all")
-endif()
-
-unset(MAKECOMMAND CACHE)
-include(CTest)
-include(add_gtests)
 
 set(CPACK_STRIP_FILES TRUE)
